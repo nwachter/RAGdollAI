@@ -1,0 +1,65 @@
+services:
+  ollama:
+    build: ./ollama
+    ports:
+      - "11434:11434"  # Ollama's default port
+    volumes:
+      - ollama_data:/root/.ollama  # Persist Ollama data
+      - ./api/pull_models.sh:/app/pull_models.sh  # Copy the script into the container
+    networks:
+      - app-network
+    entrypoint: ["/bin/sh", "-c"]
+    command: "/app/pull_models.sh"
+    working_dir: /app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api/document_store:/app/document_store  # Mount the PDF folder
+    environment:
+      - PDF_STORAGE_PATH=/app/document_store/pdfs/
+      - OLLAMA_HOST=ollama:11434  # Connect to the Ollama service
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  streamlit:
+    build: ./streamlit
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000  # Use the service name for inter-container communication
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+volumes:
+  ollama_data:  # Volume to persist Ollama models and data
+
+networks:
+  app-network:
+    driver: bridge

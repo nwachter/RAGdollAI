@@ -14,16 +14,16 @@ app = FastAPI()
 # Constants
 PDF_STORAGE_PATH = 'document_store/pdfs/'
 EMBEDDING_MODEL = OllamaEmbeddings(
-    # model="mxbai-embed-large", //testerror
+    model="mxbai-embed-large", 
     #model="SFR-Embedding-Mistral", //n'était pas indiqué
-    model="deepseek-r1",
+    #model="deepseek-r1",
     base_url="http://ollama:11434"  # Connect to the Ollama service //testerror
     #base_url="http://localhost:11434"  # Connect to the Ollama service
 )
 DOCUMENT_VECTOR_DB = InMemoryVectorStore(EMBEDDING_MODEL)
 LANGUAGE_MODEL = OllamaLLM(
    # model="mistral:7b",
-   model="deepseek-r1",
+   model="deepseek-r1:1.5b",
     base_url="http://ollama:11434"  # Connect to the Ollama service
     #base_url="http://localhost:11434"  # Connect to the Ollama service
 )

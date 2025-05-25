@@ -15,16 +15,14 @@ if ! pgrep -x "ollama" > /dev/null; then
 fi
 
 # Pull the required Ollama models
-# echo "Pulling mxbai-embed-large..."
-# ollama pull mxbai-embed-large
+echo "Pulling mxbai-embed-large..."
+ollama pull mxbai-embed-large
 
-# echo "Pulling SFR-Embedding-Mistral..." //Testerror
-# ollama pull SFR-Embedding-Mistral
+# echo "Pulling deepseek-r1..."
+# ollama pull deepseek-r1
 
-# echo "Pulling mistral:7b..."
-# ollama pull mistral:7b
-echo "Pulling deepseek-r1..."
-ollama pull deepseek-r1
+echo "Pulling deepseek-r1:1.5b..."
+ollama pull deepseek-r1:1.5b
 
 echo "All required models pulled successfully!"
 

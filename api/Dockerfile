@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y curl
 
 # Copy the application code
 COPY . .
+#testerror
+RUN chmod +x /app/pull_models.sh 
 
 # Expose the port the API runs on
 EXPOSE 8000

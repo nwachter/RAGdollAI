@@ -6,3 +6,4 @@ langchain-core
 langchain-ollama
 pydantic
 pdfplumber
+python-multipart

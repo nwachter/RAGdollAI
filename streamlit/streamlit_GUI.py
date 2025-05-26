@@ -103,7 +103,7 @@ def check_api_status():
     """Check if API is available and if documents are loaded"""
     try:
         response = requests.get(f"{API_URL}/status", timeout=5)
-        if response.status_code == 200:
+        if response.status_code == 200 or response.code == 200:
             data = response.json()
             return True, data.get("documents_loaded", False)
     except:
@@ -116,7 +116,7 @@ def upload_document(uploaded_file):
         files = {"file": (uploaded_file.name, uploaded_file, "application/pdf")}
         response = requests.post(f"{API_URL}/upload", files=files)
         
-        if response.status_code == 200:
+        if response.status_code == 200 or response.code == 200:
             return True, response.json()
         else:
             return False, {"message": "Erreur lors du téléchargement"}
@@ -127,7 +127,7 @@ def clear_documents():
     """Clear all loaded documents"""
     try:
         response = requests.delete(f"{API_URL}/clear")
-        if response.status_code == 200:
+        if response.status_code == 200 or response.code == 200:
             return True
     except:
         pass
@@ -220,7 +220,7 @@ if documents_loaded:
         with st.spinner("Analyse du document..."):
             try:
                 response = requests.post(f"{API_URL}/query", json={"query": user_input})
-                if response.status_code == 200:
+                if response.status_code == 200 or response.code == 200:
                     ai_response = response.json().get("response")
                 else:
                     ai_response = "Erreur lors de la communication avec l'API."

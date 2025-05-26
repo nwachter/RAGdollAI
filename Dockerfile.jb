@@ -1,0 +1,54 @@
+# first image only to download the git repo
+FROM alpine as MY_TMP_GIT_IMAGE
+
+RUN apk add --no-cache git openssh-client
+
+# Set up SSH directory and configure key
+RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
+
+# Use BuildKit secret to get SSH key securely
+RUN --mount=type=secret,id=ssh_key \
+    cp /run/secrets/ssh_key /root/.ssh/id_rsa && \
+    chmod 600 /root/.ssh/id_rsa && \
+    ssh-keyscan github.com >> /root/.ssh/known_hosts && \
+    git clone -b main git@github.com:nwachter/job-board.git /MY_GIT_REPO
+
+
+# Start of the second image
+FROM node:22 as builder
+
+WORKDIR /app
+COPY --from=MY_TMP_GIT_IMAGE /MY_GIT_REPO .
+
+# Disable ESLint during the build
+ENV NEXT_DISABLE_ESLINT=1
+
+RUN npm install
+RUN npm run build
+
+# Clean up unnecessary files
+RUN npm prune --production && \
+    rm -rf /app/node_modules/.cache
+
+# Final image
+FROM node:22
+
+WORKDIR /app
+
+# Copy only the necessary files from the builder stage //old: /app/frontend/package*.json
+COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/ ./.next/
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts ./
+COPY --from=builder --chown=nextjs:nodejs /app/lib ./lib
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/components ./components
+
+
+# If using App Router
+COPY --from=builder /app/app ./app
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start"]

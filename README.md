@@ -1,5 +1,6 @@
 
 # OpenSource AI PDF Chat
+*base structure is from Little PDF Bot, thanks to the creator*
 
 A simple application allowing the use of any LLM with a PDF.
 
@@ -22,8 +23,8 @@ A simple application allowing the use of any LLM with a PDF.
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/little-pdf-llm.git
-cd little-pdf-llm
+git clone https://github.com/yourusername/RAGdollAI.git
+cd RAGdollAI
 ```
 
 2. Create and activate a virtual environment:
@@ -75,7 +76,7 @@ ollama run deepseek-r1:1.5b
 2. Run the Streamlit application:
 
 ```bash
-streamlit run main.py
+streamlit run streamlit_GUI.py
 ```
 
 3. Access the application in your web browser at `http://localhost:8501`

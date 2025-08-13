@@ -7,25 +7,37 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_ollama import OllamaEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama.llms import OllamaLLM
+import chromadb
+from langchain_chroma import Chroma
 
 # Initialize FastAPI app
 app = FastAPI()
 
+# Initialize ChromaDB client (testerror)
+chroma_client = chromadb.Client()
+
 # Constants
 PDF_STORAGE_PATH = 'document_store/pdfs/'
 EMBEDDING_MODEL = OllamaEmbeddings(
-    model="mxbai-embed-large", 
-    #model="SFR-Embedding-Mistral", //n'était pas indiqué
-    #model="deepseek-r1",
-    base_url="http://ollama:11434"  # Connect to the Ollama service //testerror
-    #base_url="http://localhost:11434"  # Connect to the Ollama service
+    #model="mxbai-embed-large", 
+    model="nomic-embed-text", # Meilleur choix multilingue disponible avec Ollama
+    #base_url="http://ollama:11434"  # Connect to the Ollama service //testerror
+    base_url="http://localhost:11434"  # Connect to the Ollama service
 )
-DOCUMENT_VECTOR_DB = InMemoryVectorStore(EMBEDDING_MODEL)
+
+# Vector db - ChromaDB vector store (remplace InMemoryVectorStore)
+# DOCUMENT_VECTOR_DB = InMemoryVectorStore(EMBEDDING_MODEL)
+DOCUMENT_VECTOR_DB = Chroma(
+    client=chroma_client,
+    collection_name="pdf_documents",
+    embedding_function=EMBEDDING_MODEL,
+    persist_directory="./chroma_db"
+)
 LANGUAGE_MODEL = OllamaLLM(
-   # model="mistral:7b",
-   model="deepseek-r1:1.5b",
-    base_url="http://ollama:11434"  # Connect to the Ollama service
-    #base_url="http://localhost:11434"  # Connect to the Ollama service
+    model="mistral-7b-instruct",
+    #model="deepseek-r1:1.5b",
+    #base_url="http://ollama:11434"  # Connect to the Ollama service
+    base_url="http://localhost:11434"  # Connect to the Ollama service
 )
 
 # Prompt Template
@@ -35,6 +47,13 @@ Si tu êtes incertain, déclare que tu ne sais pas. Sois concis et factuel, rép
 
 Question: {user_query} 
 Contexte: {document_context} 
+
+Instructions :
+- Réponds uniquement basé sur le contexte fourni
+- Si l'information n'est pas dans le contexte, dis "Je ne trouve pas cette information dans les documents fournis"
+- Sois concis mais complet
+- Réponds en français
+
 Réponse:
 """
 
@@ -51,8 +70,9 @@ def load_and_process_pdfs():
 def chunk_documents(raw_documents):
     text_processor = RecursiveCharacterTextSplitter(
         chunk_size=1000,
-        chunk_overlap=300,
-        add_start_index=True
+        chunk_overlap=200, # testerror
+        add_start_index=True,
+        separators=["\n\n", "\n", ". ", " ", ""] #testerror
     )
     return text_processor.split_documents(raw_documents)
 
@@ -64,9 +84,9 @@ def find_related_documents(query):
 
 def generate_answer(user_query, context_documents):
     context_text = "\n\n".join([doc.page_content for doc in context_documents])
-    conversation_prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-    response_chain = conversation_prompt | LANGUAGE_MODEL
-    return response_chain.invoke({"user_query": user_query, "document_context": context_text})
+    conversation_prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE) #creates a ChatPromptTemplate object from a predefined string variable named PROMPT_TEMPLATE
+    response_chain = conversation_prompt | LANGUAGE_MODEL # Constructs a "chain" using LangChain Expression Language syntax. The | operator acts as a pipe, sending the output of the conversation_prompt to the LANGUAGE_MODEL .
+    return response_chain.invoke({"user_query": user_query, "document_context": context_text}) # passes a dictionary with the user_query and the context_text to the chain. The chain then processes this input, generates a response from the LANGUAGE_MODEL , and returns that response.
 
 # Reindex documents on startup
 raw_docs = load_and_process_pdfs()
@@ -77,6 +97,9 @@ index_documents(processed_chunks)
 class QueryRequest(BaseModel):
     query: str
 
+class QueryResponse(BaseModel): # class is testerror
+    answer: str
+    sources: list[str] = []
 # API Endpoints
 @app.post("/query")
 def query_documents(request: QueryRequest):

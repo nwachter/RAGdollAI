@@ -15,8 +15,8 @@ if ! pgrep -x "ollama" > /dev/null; then
 fi
 
 # Pull the required Ollama models
-echo "Pulling mxbai-embed-large..."
-ollama pull mxbai-embed-large
+echo "Pulling paraphrase-multilingual-minilm-l12-v2..."
+ollama pull paraphrase-multilingual-minilm-l12-v2
 
 # echo "Pulling deepseek-r1..."
 # ollama pull deepseek-r1

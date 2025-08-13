@@ -16,11 +16,16 @@ A simple application allowing the use of any LLM with a PDF.
 
 - Python 3.9+
 - Ollama installed and running locally
-- The Deepseek model downloaded in Ollama
+- The LLM (mistral-7b-instruct, or deepseek-r1:1.5b) model downloaded in Ollama
+- The embedding model (paraphrase-multilingual-minilm-l12-v2, mxbai-embed-large) downloaded in Ollama
+- A vector database (chroma) / except if using the in memory vector store
+
+
 
 ## Installation
 
-1. Clone the repository:
+1. If you haven't already, clone the repository:
+
 
 ```bash
 git clone https://github.com/yourusername/RAGdollAI.git
@@ -43,8 +48,9 @@ pip install -r requirements.txt
 ## Project Structure
 
 ```
-pdf-qa-system/
-├── main.py                # Main application file
+RAGdollAI/
+├── api/api.py                 # Main application file
+├── streamlit/streamlit_GUI.py           # Streamlit GUI file
 ├── document_store/pdfs/   # Directory for uploaded PDFs
 ├── requirements.txt       # Project dependencies
 ├── .gitignore             # Git ignore file

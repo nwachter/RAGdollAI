@@ -33,6 +33,7 @@ DOCUMENT_VECTOR_DB = Chroma(
     embedding_function=EMBEDDING_MODEL,
     persist_directory="./chroma_db"
 )
+
 LANGUAGE_MODEL = OllamaLLM(
     model="mistral-7b-instruct",
     #model="deepseek-r1:1.5b",
